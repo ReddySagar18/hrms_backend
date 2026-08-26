@@ -1,0 +1,73 @@
+from datetime import date , datetime 
+
+from sqlalchemy import Date,DateTime, String, Integer
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.database import Base
+
+
+class Employee(Base):
+    __tablename__ = "employees"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        nullable=False,
+    )
+    employee_id: Mapped[str | None] = mapped_column(
+        String(20),
+        unique=True,
+        nullable=False
+    )
+    
+    
+    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    personal_email: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+    )
+
+    phone: Mapped[str] = mapped_column(String(15), nullable=False)
+
+    department: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    designation: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    employment_type: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
+
+    gender: Mapped[str] = mapped_column(String(20), nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(
+    String(255),
+    nullable=True
+    )
+    activation_token: Mapped[str | None] = mapped_column(
+    String(255),
+    unique=True,
+    nullable=True
+)
+
+    activation_expiry: Mapped[datetime | None] = mapped_column(
+    DateTime,
+    nullable=True
+)
+    role: Mapped[str] = mapped_column(
+    String(20),
+    nullable=False,
+    default="Employee"
+)
+    
+
+    status: Mapped[str] = mapped_column(
+    String(30),
+    default="Pending Activation",
+    nullable=False
+)
+  
+
