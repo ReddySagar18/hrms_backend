@@ -4,11 +4,13 @@ from app.db.database import Base, engine
 from app.routers.auth import router as auth_router
 from app.routers.department import router as department_router
 from app.routers.project import router as project_router
+from app.routers.asset import router as asset_router
 # Register all ORM models
 import app.models
 from app.models.department import Department
 from app.models.team import Team 
 from app.models.project import Project
+from app.models.asset import Asset
 from app.routers.home import router as home_router
 from app.routers.employees import router as employee_router
 from app.routers.team import router as team_router
@@ -26,6 +28,7 @@ app.include_router(auth_router)
 app.include_router(department_router)
 app.include_router(team_router)
 app.include_router(project_router)
+app.include_router(asset_router)
 print("EMPLOYEE ROUTES:")
 
 for route in employee_router.routes:
