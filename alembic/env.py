@@ -9,6 +9,7 @@ from app.models import department
 from app.models import team
 from app.models import project
 from app.models import asset
+from app.models.designation import Designation
 from alembic import context
 
 # this is the Alembic Config object, which provides
