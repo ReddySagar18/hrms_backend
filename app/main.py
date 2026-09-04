@@ -12,10 +12,12 @@ from app.models.team import Team
 from app.models.project import Project
 from app.models.asset import Asset
 from app.models.designation import Designation
+from app.models.employment_type import EmploymentType
 from app.routers.home import router as home_router
 from app.routers.employees import router as employee_router
 from app.routers.team import router as team_router
 from app.routers.designation import router as designation_router
+from app.routers.employment_type import router as employment_type_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -32,6 +34,7 @@ app.include_router(team_router)
 app.include_router(project_router)
 app.include_router(asset_router)
 app.include_router(designation_router)
+app.include_router(employment_type_router)
 print("EMPLOYEE ROUTES:")
 
 for route in employee_router.routes:
