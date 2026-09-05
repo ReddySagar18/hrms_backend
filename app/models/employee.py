@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 from app.db.database import Base
 from typing import TYPE_CHECKING
 
+
 class Employee(Base):
     __tablename__ = "employees"
 
@@ -44,8 +45,17 @@ class Employee(Base):
     "Designation",
     back_populates="employees" 
     ) 
-    employment_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    employment_type_id: Mapped[int] = mapped_column(
+    ForeignKey("employment_types.id"),
+    nullable=True
+)
 
+    employment_type: Mapped["EmploymentType"] = relationship(
+    "EmploymentType",
+    back_populates="employees"
+)
+
+   
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
 
     gender: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -77,4 +87,4 @@ class Employee(Base):
 )
 if TYPE_CHECKING:
     from app.models.designation import Designation
-
+    from app.models.employment_type import EmploymentType

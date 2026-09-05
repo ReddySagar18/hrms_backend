@@ -8,6 +8,7 @@ from app.models.employee import Employee
 from app.schemas.employee import EmployeeCreate
 from app.models import designation
 from app.models.designation import Designation
+from app.models.employment_type import EmploymentType
 from sqlalchemy import text
 
 def create_employee(db: Session, employee: EmployeeCreate):
@@ -33,7 +34,7 @@ def create_employee(db: Session, employee: EmployeeCreate):
         phone=employee.phone,
         department=employee.department,
         designation_id=employee.designation_id,
-        employment_type=employee.employment_type,
+        employment_type_id=employee.employment_type_id,
         date_of_birth=employee.date_of_birth,
         gender=employee.gender,
         password_hash= None ,
@@ -123,6 +124,18 @@ def update_employee(
         .filter(Employee.employee_id == employee_id)
         .first()
     )
+    if employee.employment_type_id is not None:
+        employment_type = db.query(EmploymentType).filter(
+        EmploymentType.id == employee.employment_type_id
+    ).first()
+
+    if employment_type is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Employment Type not found"
+        )
+
+    db_employee.employment_type_id = employee.employment_type_id
 
     if db_employee is None:
         raise HTTPException(

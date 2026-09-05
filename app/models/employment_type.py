@@ -1,5 +1,7 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Integer, String, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
 from app.db.database import Base
@@ -37,3 +39,9 @@ class EmploymentType(Base):
         onupdate=datetime.utcnow,
         nullable=False
     )
+    employees: Mapped[list["Employee"]] = relationship(
+    "Employee",
+    back_populates="employment_type"
+    )
+if TYPE_CHECKING:
+    from app.models.employee import Employee
