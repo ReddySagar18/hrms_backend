@@ -35,8 +35,16 @@ class Employee(Base):
 
     phone: Mapped[str] = mapped_column(String(15), nullable=False)
 
-    department: Mapped[str] = mapped_column(String(100), nullable=False)
+    department_id: Mapped[str] = mapped_column(
+    ForeignKey("departments.department_id"),
+    nullable=False
+)
 
+    department: Mapped["Department"] = relationship(
+    "Department",
+    back_populates="employees"
+)
+    
     designation_id: Mapped[int] = mapped_column(
     ForeignKey("designations.id"),
     nullable=True
@@ -88,3 +96,4 @@ class Employee(Base):
 if TYPE_CHECKING:
     from app.models.designation import Designation
     from app.models.employment_type import EmploymentType
+    from app.models.department import Department

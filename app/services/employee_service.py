@@ -10,7 +10,7 @@ from app.models import designation
 from app.models.designation import Designation
 from app.models.employment_type import EmploymentType
 from sqlalchemy import text
-
+from app.models.department import Department
 def create_employee(db: Session, employee: EmployeeCreate):
     designation = db.query(Designation).filter(
         Designation.id == employee.designation_id
@@ -32,7 +32,7 @@ def create_employee(db: Session, employee: EmployeeCreate):
         last_name=employee.last_name,
         personal_email=employee.personal_email,
         phone=employee.phone,
-        department=employee.department,
+        department_id=employee.department_id,
         designation_id=employee.designation_id,
         employment_type_id=employee.employment_type_id,
         date_of_birth=employee.date_of_birth,
@@ -105,37 +105,62 @@ def update_employee(
     employee_id: str,
     employee: EmployeeCreate,
 ):
-    
-    if employee.designation_id is not None:
-
-         designation = db.query(Designation).filter(
-             Designation.id == employee.designation_id
-    ).first()
-
-    if designation is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Designation not found"
-        )
-
-    db_employee.designation_id = employee.designation_id
+    # 1. Find employee first
     db_employee = (
         db.query(Employee)
         .filter(Employee.employee_id == employee_id)
         .first()
     )
-    if employee.employment_type_id is not None:
-        employment_type = db.query(EmploymentType).filter(
-        EmploymentType.id == employee.employment_type_id
-    ).first()
 
-    if employment_type is None:
+    if db_employee is None:
         raise HTTPException(
             status_code=404,
-            detail="Employment Type not found"
+            detail="Employee not found"
         )
 
-    db_employee.employment_type_id = employee.employment_type_id
+    # 2. Department
+    if employee.department_id is not None:
+        department = db.query(Department).filter(
+            Department.department_id == employee.department_id
+        ).first()
+
+        if department is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Department not found"
+            )
+
+        db_employee.department_id = employee.department_id
+
+    # 3. Designation
+    if employee.designation_id is not None:
+        designation = db.query(Designation).filter(
+            Designation.id == employee.designation_id
+        ).first()
+
+        if designation is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Designation not found"
+            )
+
+        db_employee.designation_id = employee.designation_id
+
+    # 4. Employment Type
+    if employee.employment_type_id is not None:
+        employment_type = db.query(EmploymentType).filter(
+            EmploymentType.id == employee.employment_type_id
+        ).first()
+
+        if employment_type is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Employment Type not found"
+            )
+
+        db_employee.employment_type_id = employee.employment_type_id
+
+  
 
     if db_employee is None:
         raise HTTPException(

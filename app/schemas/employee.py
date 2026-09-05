@@ -8,7 +8,7 @@ class EmployeeCreate(BaseModel):
     personal_email: EmailStr
     phone: str = Field(..., min_length=10, max_length=15)
 
-    department: str
+    department_id: str  | None=None
     designation_id: int | None=None
     employment_type_id: int|None=None
 
@@ -19,8 +19,8 @@ class EmployeeUpdate(BaseModel):
     last_name: str | None = None
     personal_email: str | None = None
     phone: str | None = None
-    department: str | None = None
-    designation: str | None = None
+    department_id: str | None = None
+    designation_id: int | None = None
     employment_type_id: int | None = None
     date_of_birth: str | None = None
     gender: str | None = None
