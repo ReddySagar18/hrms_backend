@@ -1,10 +1,10 @@
 from datetime import datetime
 
 from sqlalchemy import String, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column ,relationship
 
 from app.db.database import Base
-
+from typing import TYPE_CHECKING
 
 class Designation(Base):
     __tablename__ = "designations"
@@ -37,3 +37,10 @@ class Designation(Base):
         onupdate=datetime.utcnow,
         nullable=False
     )
+    employees: Mapped[list["Employee"]] = relationship(
+    "Employee",
+    back_populates="designation"
+)
+
+if TYPE_CHECKING:
+    from app.models.employee import Employee

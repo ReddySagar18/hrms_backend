@@ -9,7 +9,7 @@ class EmployeeCreate(BaseModel):
     phone: str = Field(..., min_length=10, max_length=15)
 
     department: str
-    designation: str
+    designation_id: int | None=None
     employment_type: str
 
     date_of_birth: Optional[str] = None

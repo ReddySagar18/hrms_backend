@@ -6,17 +6,33 @@ from app.core.security import hash_password
 from datetime import datetime, timedelta
 from app.models.employee import Employee
 from app.schemas.employee import EmployeeCreate
-
+from app.models import designation
+from app.models.designation import Designation
+from sqlalchemy import text
 
 def create_employee(db: Session, employee: EmployeeCreate):
+    designation = db.query(Designation).filter(
+        Designation.id == employee.designation_id
+    ).first()
+
+    if designation is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Designation not found"
+        )
+    employee_number = db.execute(
+    text("SELECT nextval('employee_id_seq')")
+    ).scalar()
+    employee_id = f"EMP{employee_number:06d}"
 
     db_employee = Employee(
+        employee_id=employee_id,
         first_name=employee.first_name,
         last_name=employee.last_name,
         personal_email=employee.personal_email,
         phone=employee.phone,
         department=employee.department,
-        designation=employee.designation,
+        designation_id=employee.designation_id,
         employment_type=employee.employment_type,
         date_of_birth=employee.date_of_birth,
         gender=employee.gender,
@@ -30,14 +46,16 @@ def create_employee(db: Session, employee: EmployeeCreate):
         db.add(db_employee)
         db.commit()
         db.refresh(db_employee)
-        db_employee.employee_id = f"EMP{db_employee.id:06d}"
+       
+
         db_employee.activation_token = secrets.token_urlsafe(32)
         db_employee.activation_expiry = (
             datetime.utcnow() + timedelta(hours=24)
-)
-
+)       
         db.commit()
         db.refresh(db_employee)
+
+        
         activation_link = (
             f"http://127.0.0.1:8000/activate?"
             f"token={db_employee.activation_token}"
@@ -86,7 +104,20 @@ def update_employee(
     employee_id: str,
     employee: EmployeeCreate,
 ):
+    
+    if employee.designation_id is not None:
 
+         designation = db.query(Designation).filter(
+             Designation.id == employee.designation_id
+    ).first()
+
+    if designation is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Designation not found"
+        )
+
+    db_employee.designation_id = employee.designation_id
     db_employee = (
         db.query(Employee)
         .filter(Employee.employee_id == employee_id)

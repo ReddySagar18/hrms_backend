@@ -42,7 +42,7 @@ def create_designation_route(
 )
 def get_all_designations_route(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_role("HR"))
+    
 ):
     return get_all_designations(db)
 
@@ -54,7 +54,7 @@ def get_all_designations_route(
 def get_designation_by_id_route(
     designation_id: int,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(require_role("HR"))
+    
 ):
     designation = get_designation_by_id(db, designation_id)
 

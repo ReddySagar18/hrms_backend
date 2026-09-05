@@ -4,12 +4,15 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from app.db.database import Base
 
-from app.models import employee
-from app.models import department
-from app.models import team
-from app.models import project
-from app.models import asset
+
+from app.models.employee import Employee
+from app.models.department import Department
 from app.models.designation import Designation
+from app.models.employment_type import EmploymentType
+from app.models.team import Team
+from app.models.project import Project
+from app.models.asset import Asset
+
 from alembic import context
 
 # this is the Alembic Config object, which provides

@@ -1,10 +1,10 @@
 from datetime import date , datetime 
-
+from sqlalchemy import ForeignKey
 from sqlalchemy import Date,DateTime, String, Integer
 from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy.orm import relationship
 from app.db.database import Base
-
+from typing import TYPE_CHECKING
 
 class Employee(Base):
     __tablename__ = "employees"
@@ -36,8 +36,14 @@ class Employee(Base):
 
     department: Mapped[str] = mapped_column(String(100), nullable=False)
 
-    designation: Mapped[str] = mapped_column(String(100), nullable=False)
-
+    designation_id: Mapped[int] = mapped_column(
+    ForeignKey("designations.id"),
+    nullable=True
+    )
+    designation: Mapped["Designation"] = relationship(
+    "Designation",
+    back_populates="employees" 
+    ) 
     employment_type: Mapped[str] = mapped_column(String(50), nullable=False)
 
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
@@ -69,5 +75,6 @@ class Employee(Base):
     default="Pending Activation",
     nullable=False
 )
-  
+if TYPE_CHECKING:
+    from app.models.designation import Designation
 
