@@ -3,7 +3,7 @@ from jose import jwt
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
-
+from app.core.config import settings
 
 SECRET_KEY = "your-super-secret-key-change-later"
 
@@ -24,7 +24,7 @@ def create_access_token(data: dict):
 
     token = jwt.encode(
         to_encode,
-        SECRET_KEY,
+        settings.SECRET_KEY,
         algorithm=ALGORITHM
     )
 
@@ -51,7 +51,7 @@ def verify_access_token(token: str):
     try:
         payload = jwt.decode(
             token,
-            SECRET_KEY,
+            settings.SECRET_KEY,
             algorithms=[ALGORITHM]
         )
 
