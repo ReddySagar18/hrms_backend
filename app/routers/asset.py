@@ -9,12 +9,13 @@ from app.services.asset_service import (
     get_asset_by_id,
     update_asset,
     retire_asset,
-    assign_asset,
+    assign_asset_to_employee,
     return_asset,
-    replace_asset
+    replace_asset,
+    get_employee_assets
     
 )
-from app.dependencies.auth import require_role
+from app.dependencies.auth import require_role, require_roles
 
 
 router = APIRouter(
@@ -46,10 +47,10 @@ def get_asset(
 ):
     return get_asset_by_id(db, asset_id)
 
-#update asset
+#update asset 
 @router.patch("/{asset_id}", response_model=AssetResponse)
 def update_asset_route(
-    asset_id: int,
+    asset_id: str,
     asset_data: AssetUpdate,
     db: Session = Depends(get_db),
     current_user: dict=Depends(require_role("HR"))
@@ -66,7 +67,7 @@ def update_asset_route(
 # retire asset
 @router.patch("/{asset_id}/retire", response_model=AssetResponse)
 def retire_asset_route(
-    asset_id: int,
+    asset_id: str,
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
 ):
@@ -86,7 +87,7 @@ def assign_asset_route(
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
 ):
-    asset, error = assign_asset(
+    asset, error = assign_asset_to_employee(
         db,
         asset_id,
         data.employee_id
@@ -115,7 +116,7 @@ def assign_asset_route(
 
 @router.post("/{asset_id}/return", response_model=AssetResponse)
 def return_asset_route(
-    asset_id: int,
+    asset_id: str,
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
 ):
@@ -137,7 +138,7 @@ def return_asset_route(
 #asset replace 
 @router.post("/{asset_id}/replace", response_model=AssetResponse)
 def replace_asset_route(
-    asset_id: int,
+    asset_id: str,
     data: AssetReplace,
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
@@ -168,3 +169,14 @@ def replace_asset_route(
         )
 
     return asset
+
+@router.get("/employee/{employee_id}", response_model=list[AssetResponse])
+def get_employee_assets_route(
+    employee_id: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_roles("HR", "Employee"))
+):
+    return get_employee_assets(
+        db,
+        employee_id
+    )

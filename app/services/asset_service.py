@@ -75,7 +75,7 @@ def update_asset(db: Session, asset_id: str, asset_data: AssetUpdate):
     return asset
 # retire asset 
 def retire_asset(db: Session, asset_id: str):
-    asset = db.query(Asset).filter(Asset.id == asset_id).first()
+    asset = db.query(Asset).filter(Asset.asset_id == asset_id).first()
 
     if not asset:
         return None
@@ -88,37 +88,48 @@ def retire_asset(db: Session, asset_id: str):
     return asset
 
 
-def assign_asset(db: Session, asset_id: str, employee_id: str):
+def assign_asset_to_employee(
+    db,
+    asset_id: str,
+    employee_id: str
+):
+    asset = db.query(Asset).filter(
+        Asset.asset_id == asset_id
+    ).first()
 
-    asset = db.query(Asset).filter(Asset.id == asset_id).first()
+    if asset is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Asset not found"
+        )
 
-    if not asset:
-        return None, "Asset not found"
+    employee = db.query(Employee).filter(
+        Employee.employee_id == employee_id
+    ).first()
 
-    employee = (
-        db.query(Employee)
-        .filter(Employee.employee_id == employee_id)
-        .first()
-    )
+    if employee is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
 
-    if not employee:
-        return None, "Employee not found"
-
-    if asset.status != "Available":
-        return None, "Asset is not available for assignment"
+    if asset.employee_id is not None:
+        raise HTTPException(
+            status_code=400,
+            detail="Asset is already assigned to an employee"
+        )
 
     asset.employee_id = employee_id
-    asset.status = "Assigned"
 
     db.commit()
     db.refresh(asset)
 
-    return asset, None
+    return asset
 
 
 def return_asset(db: Session, asset_id: str):
 
-    asset = db.query(Asset).filter(Asset.id == asset_id).first()
+    asset = db.query(Asset).filter(Asset.asset_id== asset_id).first()
 
     if not asset:
         return None, "Asset not found"
@@ -138,7 +149,7 @@ def replace_asset(db: Session, old_asset_id: str, new_asset_id: str):
 
     old_asset = (
         db.query(Asset)
-        .filter(Asset.id == old_asset_id)
+        .filter(Asset.asset_id == old_asset_id)
         .first()
     )
 
@@ -152,7 +163,7 @@ def replace_asset(db: Session, old_asset_id: str, new_asset_id: str):
 
     new_asset = (
         db.query(Asset)
-        .filter(Asset.id == new_asset_id)
+        .filter(Asset.asset_id == new_asset_id)
         .first()
     )
 
@@ -179,3 +190,23 @@ def replace_asset(db: Session, old_asset_id: str, new_asset_id: str):
     db.refresh(new_asset)
 
     return new_asset, None
+
+def get_employee_assets(
+    db: Session,
+    employee_id: str
+):
+    employee = db.query(Employee).filter(
+        Employee.employee_id == employee_id
+    ).first()
+
+    if not employee:
+        raise HTTPException(
+            status_code=404,
+            detail="Employee not found"
+        )
+
+    assets = db.query(Asset).filter(
+        Asset.employee_id == employee_id
+    ).all()
+
+    return assets

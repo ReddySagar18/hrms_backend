@@ -107,9 +107,14 @@ class Employee(Base):
     secondary="employee_projects",
     back_populates="employees"
 )
+    assets: Mapped[list["Asset"]] = relationship(
+    "Asset",
+    back_populates="employee"
+)
 if TYPE_CHECKING:
     from app.models.designation import Designation
     from app.models.employment_type import EmploymentType
     from app.models.department import Department
     from app.models.team import Team
     from app.models.project import Project
+    from app.models.asset import Asset

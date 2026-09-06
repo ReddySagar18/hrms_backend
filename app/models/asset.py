@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, DateTime , ForeignKey
 from app.db.database import Base
-
+from sqlalchemy.orm import relationship
 
 class Asset(Base):
     __tablename__ = "assets"
@@ -15,5 +15,9 @@ class Asset(Base):
         ForeignKey("employees.employee_id"),
         nullable=True
     )
+    employee = relationship(
+    "Employee",
+    back_populates="assets"
+)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
