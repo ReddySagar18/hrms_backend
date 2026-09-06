@@ -93,7 +93,16 @@ class Employee(Base):
     default="Pending Activation",
     nullable=False
 )
+    team_id: Mapped[str] = mapped_column(
+      ForeignKey("teams.team_id"),
+    nullable=True
+) 
+    team: Mapped["Team"] = relationship(
+    "Team",
+    back_populates="employees"
+)
 if TYPE_CHECKING:
     from app.models.designation import Designation
     from app.models.employment_type import EmploymentType
     from app.models.department import Department
+    from app.models.team import Team

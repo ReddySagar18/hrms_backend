@@ -13,7 +13,6 @@ def create_team(db: Session, team: TeamCreate):
     db_team = Team(
         team_id=team.team_id,
         team_name=team.team_name,
-        department_id=team.department_id,
         status=team.status,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow()

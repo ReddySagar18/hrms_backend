@@ -11,7 +11,7 @@ class EmployeeCreate(BaseModel):
     department_id: str  | None=None
     designation_id: int | None=None
     employment_type_id: int|None=None
-
+    team_id: str | None = None
     date_of_birth: Optional[str] = None
     gender: Optional[str] = None
 class EmployeeUpdate(BaseModel):
@@ -21,6 +21,7 @@ class EmployeeUpdate(BaseModel):
     phone: str | None = None
     department_id: str | None = None
     designation_id: int | None = None
+    team_id: str | None = None
     employment_type_id: int | None = None
     date_of_birth: str | None = None
     gender: str | None = None

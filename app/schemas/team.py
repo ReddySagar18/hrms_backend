@@ -5,14 +5,12 @@ from pydantic import BaseModel
 class TeamCreate(BaseModel):
     team_id: str
     team_name: str
-    department_id: str
     status: str
 
 
 class TeamResponse(BaseModel):
     team_id: str
     team_name: str
-    department_id: str
     status: str
     created_at: datetime
     updated_at: datetime

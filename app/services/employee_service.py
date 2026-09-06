@@ -11,6 +11,7 @@ from app.models.designation import Designation
 from app.models.employment_type import EmploymentType
 from sqlalchemy import text
 from app.models.department import Department
+from app.models.team import Team
 def create_employee(db: Session, employee: EmployeeCreate):
     designation = db.query(Designation).filter(
         Designation.id == employee.designation_id
@@ -25,7 +26,17 @@ def create_employee(db: Session, employee: EmployeeCreate):
     text("SELECT nextval('employee_id_seq')")
     ).scalar()
     employee_id = f"EMP{employee_number:06d}"
+    # team
+    if employee.team_id is not None:
+       team = db.query(Team).filter(
+        Team.team_id == employee.team_id
+    ).first()
 
+    if team is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Team not found"
+        )
     db_employee = Employee(
         employee_id=employee_id,
         first_name=employee.first_name,
@@ -160,7 +171,19 @@ def update_employee(
 
         db_employee.employment_type_id = employee.employment_type_id
 
-  
+    #team
+    if employee.team_id is not None:
+      team = db.query(Team).filter(
+        Team.team_id == employee.team_id
+    ).first()
+
+    if team is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Team not found"
+        )
+
+    db_employee.team_id = employee.team_id
 
     if db_employee is None:
         raise HTTPException(
@@ -183,7 +206,10 @@ def update_employee(
             status_code=409,
             detail="Employee with this email already exists."
         )
+
+    
 # deletion of employee
+
 def delete_employee(db: Session, employee_id: str):
 
     db_employee = (
@@ -208,6 +234,8 @@ def delete_employee(db: Session, employee_id: str):
         "employee_id": db_employee.employee_id,
         "status": db_employee.status
     }
+
+#activation of an employee
 def activate_employee_account(db: Session, token: str, password: str):
 
     employee = (
