@@ -13,30 +13,38 @@ from sqlalchemy import text
 from app.models.department import Department
 from app.models.team import Team
 def create_employee(db: Session, employee: EmployeeCreate):
-    designation = db.query(Designation).filter(
-        Designation.id == employee.designation_id
-    ).first()
+    # Validate designation only if provided
+    if employee.designation_id is not None:
+        designation = db.query(Designation).filter(
+            Designation.id == employee.designation_id
+        ).first()
 
-    if designation is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Designation not found"
-        )
+        if designation is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Designation not found"
+            )
+
+    # Generate system employee ID
     employee_number = db.execute(
-    text("SELECT nextval('employee_id_seq')")
+        text("SELECT nextval('employee_id_seq')")
     ).scalar()
-    employee_id = f"EMP{employee_number:06d}"
-    # team
-    if employee.team_id is not None:
-       team = db.query(Team).filter(
-        Team.team_id == employee.team_id
-    ).first()
 
-    if team is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Team not found"
-        )
+    employee_id = f"EMP{employee_number:06d}"
+
+    # Validate team only if provided
+    if employee.team_id is not None:
+        team = db.query(Team).filter(
+            Team.team_id == employee.team_id
+        ).first()
+
+        if team is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Team not found"
+            )
+
+    # Create employee
     db_employee = Employee(
         employee_id=employee_id,
         first_name=employee.first_name,
@@ -46,48 +54,49 @@ def create_employee(db: Session, employee: EmployeeCreate):
         department_id=employee.department_id,
         designation_id=employee.designation_id,
         employment_type_id=employee.employment_type_id,
+        team_id=employee.team_id,
         date_of_birth=employee.date_of_birth,
         gender=employee.gender,
-        password_hash= None ,
+        password_hash=None,
         status="Pending Activation"
-        
     )
-
 
     try:
         db.add(db_employee)
         db.commit()
         db.refresh(db_employee)
-       
 
+        # Generate activation token
         db_employee.activation_token = secrets.token_urlsafe(32)
         db_employee.activation_expiry = (
             datetime.utcnow() + timedelta(hours=24)
-)       
+        )
+
         db.commit()
         db.refresh(db_employee)
 
-        
+        # Activation link
         activation_link = (
             f"http://127.0.0.1:8000/activate?"
             f"token={db_employee.activation_token}"
-)
+        )
+
         print("\n" + "=" * 70)
         print("EMPLOYEE CREATED SUCCESSFULLY")
         print(f"Employee ID     : {db_employee.employee_id}")
         print(f"Activation Link : {activation_link}")
         print("=" * 70 + "\n")
 
-        # 8. Response to HR
+        # Response to HR
         return {
             "message": "Employee created successfully.",
             "employee_id": db_employee.employee_id,
             "status": db_employee.status
         }
 
-        
     except IntegrityError as e:
         db.rollback()
+
         print("=" * 80)
         print(e)
         print("=" * 80)

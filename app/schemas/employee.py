@@ -6,8 +6,11 @@ class EmployeeCreate(BaseModel):
     first_name: str = Field(..., min_length=2, max_length=50)
     last_name: str = Field(..., min_length=2, max_length=50)
     personal_email: EmailStr
-    phone: str = Field(..., min_length=10, max_length=15)
-
+    phone: str | None = Field(
+    default=None,
+    min_length=10,
+    max_length=15
+)
     department_id: str  | None=None
     designation_id: int | None=None
     employment_type_id: int|None=None

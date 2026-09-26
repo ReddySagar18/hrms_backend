@@ -34,11 +34,11 @@ class Employee(Base):
         nullable=False,
     )
 
-    phone: Mapped[str] = mapped_column(String(15), nullable=False)
+    phone: Mapped[str] = mapped_column(String(15), nullable=True)
 
     department_id: Mapped[str] = mapped_column(
     ForeignKey("departments.department_id"),
-    nullable=False
+    nullable=True
 )
 
     department: Mapped["Department"] = relationship(
@@ -65,9 +65,9 @@ class Employee(Base):
 )
 
    
-    date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
+    date_of_birth: Mapped[date] = mapped_column(Date, nullable=True)
 
-    gender: Mapped[str] = mapped_column(String(20), nullable=False)
+    gender: Mapped[str] = mapped_column(String(20), nullable=True)
     password_hash: Mapped[str | None] = mapped_column(
     String(255),
     nullable=True
