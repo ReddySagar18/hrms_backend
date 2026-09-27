@@ -41,8 +41,10 @@ def create_employee(db: Session, employee: EmployeeCreate):
         if team is None:
             raise HTTPException(
                 status_code=404,
-                detail="Team not found"
+               
             )
+
+        db_employee.team_id = employee.team_id
 
     # Create employee
     db_employee = Employee(
@@ -181,18 +183,19 @@ def update_employee(
         db_employee.employment_type_id = employee.employment_type_id
 
     #team
+    # Validate team only if provided
     if employee.team_id is not None:
-      team = db.query(Team).filter(
-        Team.team_id == employee.team_id
-    ).first()
+        team = db.query(Team).filter(
+            Team.team_id == employee.team_id
+        ).first()
 
-    if team is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Team not found"
-        )
+        if team is None:
+            raise HTTPException(
+                status_code=404,
+                detail="team not found"
+            )
 
-    db_employee.team_id = employee.team_id
+        db_employee.team_id = employee.team_id
 
     if db_employee is None:
         raise HTTPException(
