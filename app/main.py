@@ -18,6 +18,7 @@ from app.routers.employees import router as employee_router
 from app.routers.team import router as team_router
 from app.routers.designation import router as designation_router
 from app.routers.employment_type import router as employment_type_router
+from fastapi.middleware.cors import CORSMiddleware
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -26,6 +27,16 @@ app = FastAPI(
     version="1.0.0",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(home_router)
 app.include_router(employee_router)
 app.include_router(auth_router)
