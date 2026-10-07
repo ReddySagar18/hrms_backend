@@ -118,9 +118,14 @@ def assign_asset_to_employee(
             status_code=400,
             detail="Asset is already assigned to an employee"
         )
+    if asset.status != "Available":
+        raise HTTPException(
+            status_code=400,
+            detail="Asset is not available for assignment"
+        )
 
     asset.employee_id = employee_id
-
+    asset.status = "Assigned"
     db.commit()
     db.refresh(asset)
 
