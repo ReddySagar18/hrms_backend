@@ -62,7 +62,7 @@ def update_asset(db: Session, asset_id: str, asset_data: AssetUpdate):
     asset = db.query(Asset).filter(Asset.asset_id == asset_id).first()
 
     if not asset:
-        return None
+        return None, "Asset not found"
 
     update_data = asset_data.model_dump(exclude_unset=True)
 
@@ -78,14 +78,17 @@ def retire_asset(db: Session, asset_id: str):
     asset = db.query(Asset).filter(Asset.asset_id == asset_id).first()
 
     if not asset:
-        return None
-
+        return None, "Asset not found"
+    if asset.employee_id is not None:
+        return None, "Cannot retire an asset that is currently assigned to an employee"
+    if asset.status == "Retired":
+        return None, "Asset is already retired"
     asset.status = "Retired"
 
     db.commit()
     db.refresh(asset)
 
-    return asset
+    return asset,None
 
 
 def assign_asset_to_employee(
@@ -118,83 +121,115 @@ def assign_asset_to_employee(
             status_code=400,
             detail="Asset is already assigned to an employee"
         )
-    if asset.status != "Available":
+    if asset.status != "Active":
         raise HTTPException(
             status_code=400,
-            detail="Asset is not available for assignment"
+            detail="Only Active assets can be assigned"
         )
 
     asset.employee_id = employee_id
-    asset.status = "Assigned"
+    
     db.commit()
     db.refresh(asset)
 
     return asset
 
-
-def return_asset(db: Session, asset_id: str):
-
-    asset = db.query(Asset).filter(Asset.asset_id== asset_id).first()
+def return_asset(db: Session, asset_id: str, employee_id: str):
+    asset = db.query(Asset).filter(
+        Asset.asset_id == asset_id
+    ).first()
 
     if not asset:
         return None, "Asset not found"
 
-    if asset.status != "Assigned":
+    employee = db.query(Employee).filter(
+        Employee.employee_id == employee_id
+    ).first()
+
+    if not employee:
+        return None, "Employee not found"
+
+    if asset.employee_id is None:
         return None, "Asset is not currently assigned"
 
+    if asset.employee_id != employee_id:
+        return None, "Asset is not assigned to this employee"
+
+    if asset.status != "Active":
+        return None, "Only Active assets can be returned"
+
     asset.employee_id = None
-    asset.status = "Available"
+    asset.status = "Active"
 
     db.commit()
     db.refresh(asset)
 
     return asset, None
 
-def replace_asset(db: Session, old_asset_id: str, new_asset_id: str):
-
-    old_asset = (
-        db.query(Asset)
-        .filter(Asset.asset_id == old_asset_id)
-        .first()
-    )
+def replace_asset(
+    db: Session,
+    old_asset_id: str,
+    new_asset_id: str,
+    employee_id: str
+):
+    old_asset = db.query(Asset).filter(
+        Asset.asset_id == old_asset_id
+    ).first()
 
     if not old_asset:
         return None, "Old asset not found"
 
-    if old_asset.status != "Assigned":
-        return None, "Old asset is not currently assigned"
-
-    employee_id = old_asset.employee_id
-
-    new_asset = (
-        db.query(Asset)
-        .filter(Asset.asset_id == new_asset_id)
-        .first()
-    )
+    new_asset = db.query(Asset).filter(
+        Asset.asset_id == new_asset_id
+    ).first()
 
     if not new_asset:
         return None, "New asset not found"
 
-    if new_asset.status != "Available":
-        return None, "New asset is not available"
+    employee = db.query(Employee).filter(
+        Employee.employee_id == employee_id
+    ).first()
+
+    if not employee:
+        return None, "Employee not found"
 
     if old_asset_id == new_asset_id:
         return None, "Old and new asset cannot be the same"
 
-    # Retire old asset
-    old_asset.employee_id = None
-    old_asset.status = "Retired"
+    if old_asset.status != "Active":
+        return None, "Old asset must be Active"
 
-    # Assign new asset
-    new_asset.employee_id = employee_id
-    new_asset.status = "Assigned"
+    if old_asset.employee_id is None:
+        return None, "Old asset is not currently assigned"
 
-    db.commit()
+    if old_asset.employee_id != employee_id:
+        return None, "Old asset is not assigned to this employee"
 
-    db.refresh(old_asset)
-    db.refresh(new_asset)
+    if new_asset.status != "Active":
+        return None, "New asset must be Active"
 
-    return new_asset, None
+    if new_asset.employee_id is not None:
+        return None, "New asset is already assigned"
+
+    try:
+        old_asset.employee_id = None
+        old_asset.status = "Retired"
+
+        new_asset.employee_id = employee_id
+        new_asset.status = "Active"
+
+        db.commit()
+
+        db.refresh(old_asset)
+        db.refresh(new_asset)
+
+        return new_asset, None
+
+    except Exception:
+        db.rollback()
+        raise
+
+
 
 def get_employee_assets(
     db: Session,

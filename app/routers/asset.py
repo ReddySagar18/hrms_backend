@@ -1,8 +1,10 @@
+
+
 from fastapi import APIRouter, Depends , HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.schemas.asset import AssetCreate, AssetResponse , AssetUpdate , AssetAssign , AssetReplace
+from app.schemas.asset import AssetCreate, AssetResponse , AssetUpdate , AssetAssign ,AssetReturn, AssetReplace
 from app.services.asset_service import (
     create_asset,
     get_all_assets,
@@ -64,6 +66,8 @@ def update_asset_route(
         )
 
     return asset
+
+
 # retire asset
 @router.patch("/{asset_id}/retire", response_model=AssetResponse)
 def retire_asset_route(
@@ -71,14 +75,15 @@ def retire_asset_route(
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
 ):
-    asset = retire_asset(db, asset_id)
+    asset, error = retire_asset(db, asset_id)
+    if error == "Asset not found":
+       raise HTTPException(status_code=404, detail=error)
 
-    if not asset:
-        raise HTTPException(
-            status_code=404,
-            detail="Asset not found"
-        )
+    if error:
+       raise HTTPException(status_code=400, detail=error)
 
+
+   
     return asset
 @router.post("/{asset_id}/assign", response_model=AssetResponse)
 def assign_asset_route(
@@ -87,86 +92,60 @@ def assign_asset_route(
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
 ):
-    asset, error = assign_asset_to_employee(
+    return assign_asset_to_employee(
         db,
         asset_id,
         data.employee_id
     )
 
-    if error == "Asset not found":
-        raise HTTPException(
-            status_code=404,
-            detail=error
-        )
 
-    if error == "Employee not found":
-        raise HTTPException(
-            status_code=404,
-            detail=error
-        )
-
-    if error == "Asset is not available for assignment":
-        raise HTTPException(
-            status_code=400,
-            detail=error
-        )
-
-    return asset
+    
 
 
-@router.post("/{asset_id}/return", response_model=AssetResponse)
+@router.post("/return", response_model=AssetResponse)
 def return_asset_route(
+    data: AssetReturn,
     asset_id: str,
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
 ):
-    asset, error = return_asset(db, asset_id)
+    asset, error = return_asset(db, data.asset_id, data.employee_id)
 
-    if error == "Asset not found":
+    if error in [
+        "Asset not found",
+        "Employee not found"
+    ]:
         raise HTTPException(
             status_code=404,
             detail=error
         )
-
-    if error == "Asset is not currently assigned":
-        raise HTTPException(
-            status_code=400,
-            detail=error
-        )
+    if error:
+        raise HTTPException(status_code=400, detail=error)
 
     return asset
 #asset replace 
-@router.post("/{asset_id}/replace", response_model=AssetResponse)
+@router.post("/replace", response_model=AssetResponse)
 def replace_asset_route(
-    asset_id: str,
     data: AssetReplace,
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
 ):
     asset, error = replace_asset(
         db,
-        asset_id,
-        data.new_asset_id
+        data.old_asset_id,
+        data.new_asset_id,
+        data.employee_id
     )
 
     if error in [
         "Old asset not found",
-        "New asset not found"
+        "New asset not found",
+        "Employee not found"
     ]:
-        raise HTTPException(
-            status_code=404,
-            detail=error
-        )
+        raise HTTPException(status_code=404, detail=error)
 
-    if error in [
-        "Old asset is not currently assigned",
-        "New asset is not available",
-        "Old and new asset cannot be the same"
-    ]:
-        raise HTTPException(
-            status_code=400,
-            detail=error
-        )
+    if error:
+        raise HTTPException(status_code=400, detail=error)
 
     return asset
 

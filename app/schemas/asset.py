@@ -24,11 +24,16 @@ class AssetResponse(BaseModel):
         from_attributes = True
 class AssetUpdate(BaseModel):
     asset_name: Optional[str] = None
-    asset_type: Optional[str] = None
+    asset_category: Optional[str] = None
     serial_number: Optional[str] = None
     status: Optional[str] = None
 class AssetAssign(BaseModel):
     employee_id: str
 
 class AssetReplace(BaseModel):
+    old_asset_id: str
     new_asset_id: str
+    employee_id: str
+class AssetReturn(BaseModel):
+    asset_id: str
+    employee_id: str
