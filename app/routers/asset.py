@@ -105,7 +105,7 @@ def assign_asset_route(
 @router.post("/return", response_model=AssetResponse)
 def return_asset_route(
     data: AssetReturn,
-    asset_id: str,
+    
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role("HR"))
 ):
